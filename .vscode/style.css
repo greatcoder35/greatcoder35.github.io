@@ -1,1 +1,7 @@
-body{background-color:#c8bfbf}
+body {
+    background-color: #282c34;
+    color: #abb2bf;
+    font-family: 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
