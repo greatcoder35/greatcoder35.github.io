@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jordan's Tic Tac Toe</title>
+  <title>Tic Tac Toe</title>
   <style>
     body {
       display: flex;
@@ -18,8 +18,13 @@
     h1 {
       margin-bottom: 20px;
     }
+    #player-form {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
     #board {
-      display: grid;
+      display: none;
       grid-template-columns: repeat(3, 100px);
       grid-template-rows: repeat(3, 100px);
       gap: 5px;
@@ -37,12 +42,11 @@
     .cell.disabled {
       cursor: default;
     }
-    #status {
+    #status, #restart {
+      display: none;
       margin-top: 20px;
-      font-size: 1.2rem;
     }
     #restart {
-      margin-top: 10px;
       padding: 10px 20px;
       font-size: 1rem;
       cursor: pointer;
@@ -50,8 +54,21 @@
   </style>
 </head>
 <body>
-  <h1>Jordan's Tic Tac Toe</h1>
-  <div id="board">
+  <h1>Tic Tac Toe</h1>
+
+  <div id="player-form">
+    <label>
+      Player X Name:
+      <input type="text" id="playerXName" placeholder="X" />
+    </label>
+    <label>
+      Player O Name:
+      <input type="text" id="playerOName" placeholder="O" />
+    </label>
+    <button id="startButton">Start Game</button>
+  </div>
+
+  <div id="board" style="display: grid;">
     <div class="cell" data-index="0"></div>
     <div class="cell" data-index="1"></div>
     <div class="cell" data-index="2"></div>
@@ -62,21 +79,42 @@
     <div class="cell" data-index="7"></div>
     <div class="cell" data-index="8"></div>
   </div>
-  <div id="status">Current Player: X</div>
+
+  <div id="status">Current Player: </div>
   <button id="restart">Restart Game</button>
+
   <script>
     const board = Array(9).fill("");
     let currentPlayer = "X";
-    let isGameActive = true;
+    let isGameActive = false;
+    let playerNames = { X: 'X', O: 'O' };
+
     const statusDisplay = document.getElementById('status');
     const cells = document.querySelectorAll('.cell');
     const restartButton = document.getElementById('restart');
+    const playerForm = document.getElementById('player-form');
+    const startButton = document.getElementById('startButton');
+    const playerXInput = document.getElementById('playerXName');
+    const playerOInput = document.getElementById('playerOName');
 
     const winningConditions = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8],
       [0, 3, 6], [1, 4, 7], [2, 5, 8],
       [0, 4, 8], [2, 4, 6]
     ];
+
+    startButton.addEventListener('click', () => {
+      // Set player names or defaults
+      playerNames.X = playerXInput.value.trim() || 'X';
+      playerNames.O = playerOInput.value.trim() || 'O';
+      // Hide form, show game
+      playerForm.style.display = 'none';
+      document.getElementById('board').style.display = 'grid';
+      statusDisplay.style.display = 'block';
+      restartButton.style.display = 'block';
+      isGameActive = true;
+      updateStatus();
+    });
 
     function handleCellClick(e) {
       const index = e.target.getAttribute('data-index');
@@ -91,28 +129,36 @@
       cell.classList.add('disabled');
     }
 
+    function updateStatus(message) {
+      if (message) {
+        statusDisplay.textContent = message;
+      } else {
+        statusDisplay.textContent = `Current Player: ${playerNames[currentPlayer]}`;
+      }
+    }
+
     function changePlayer() {
       currentPlayer = currentPlayer === "X" ? "O" : "X";
-      statusDisplay.textContent = `Current Player: ${currentPlayer}`;
+      updateStatus();
     }
 
     function checkResult() {
       let roundWon = false;
       for (let condition of winningConditions) {
         const [a, b, c] = condition;
-        if (board[a] === '' || board[b] === '' || board[c] === '') continue;
+        if (!board[a] || !board[b] || !board[c]) continue;
         if (board[a] === board[b] && board[b] === board[c]) {
           roundWon = true;
           break;
         }
       }
       if (roundWon) {
-        statusDisplay.textContent = `Player ${currentPlayer} Wins!`;
+        updateStatus(`Player ${playerNames[currentPlayer]} Wins!`);
         isGameActive = false;
         return;
       }
       if (!board.includes('')) {
-        statusDisplay.textContent = 'Draw!';
+        updateStatus('Draw!');
         isGameActive = false;
         return;
       }
@@ -123,7 +169,8 @@
       board.fill('');
       isGameActive = true;
       currentPlayer = 'X';
-      statusDisplay.textContent = `Current Player: ${currentPlayer}`;
+      document.getElementById('board').style.display = 'grid';
+      updateStatus();
       cells.forEach(cell => {
         cell.textContent = '';
         cell.classList.remove('disabled');
